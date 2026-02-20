@@ -1,0 +1,7 @@
+{
+  "name": "Ingenio Servicios Legales - Landing Page",
+  "description": "Modern corporate landing page for a Colombian legal firm specializing in insolvency, urbanism, and notarial services, featuring Amelia, a Gemini-powered voice and chat assistant.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

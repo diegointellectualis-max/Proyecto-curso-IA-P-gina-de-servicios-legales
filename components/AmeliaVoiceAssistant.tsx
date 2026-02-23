@@ -61,19 +61,28 @@ const AmeliaVoiceAssistant: React.FC = () => {
 
   const stopCall = useCallback(() => {
     if (sessionPromiseRef.current) {
-      sessionPromiseRef.current.then(session => session.close());
+      sessionPromiseRef.current.then(session => {
+        try { session.close(); } catch(e) {}
+      });
       sessionPromiseRef.current = null;
     }
-    if (audioContextInRef.current) audioContextInRef.current.close();
-    if (audioContextOutRef.current) audioContextOutRef.current.close();
-    sourcesRef.current.forEach(s => s.stop());
+    if (audioContextInRef.current) {
+      audioContextInRef.current.close().catch(() => {});
+      audioContextInRef.current = null;
+    }
+    if (audioContextOutRef.current) {
+      audioContextOutRef.current.close().catch(() => {});
+      audioContextOutRef.current = null;
+    }
+    sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
     sourcesRef.current.clear();
     setIsCalling(false);
     setStatus('Llamada finalizada');
   }, []);
 
   const startCall = async () => {
-    if (!process.env.API_KEY) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
       setStatus('Error: Sin API Key');
       return;
     }
@@ -82,7 +91,8 @@ const AmeliaVoiceAssistant: React.FC = () => {
       setStatus('Conectando...');
       setIsCalling(true);
 
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      // Crear nueva instancia justo antes de la llamada como indica la guía
+      const ai = new GoogleGenAI({ apiKey });
       const outCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       const inCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
       audioContextOutRef.current = outCtx;
@@ -95,7 +105,6 @@ const AmeliaVoiceAssistant: React.FC = () => {
         callbacks: {
           onopen: () => {
             setStatus('En llamada con Amelia');
-            // Audio streaming setup
             const source = inCtx.createMediaStreamSource(stream);
             const scriptProcessor = inCtx.createScriptProcessor(4096, 1, 1);
             scriptProcessor.onaudioprocess = (e) => {
@@ -128,7 +137,7 @@ const AmeliaVoiceAssistant: React.FC = () => {
               source.onended = () => sourcesRef.current.delete(source);
             }
             if (message.serverContent?.interrupted) {
-              sourcesRef.current.forEach(s => s.stop());
+              sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
             }
@@ -143,17 +152,7 @@ const AmeliaVoiceAssistant: React.FC = () => {
         },
         config: {
           responseModalities: [Modality.AUDIO],
-          systemInstruction: `Eres Amelia, asistente virtual de Ingenio Servicios Legales. 
-          Hablas en español neutro, tono profesional y cercano. 
-          Identidad: mujer de 28 años.
-          Presentación inicial obligatoria: "Hola, soy Amelia, asistente virtual de Ingenio Servicios Legales. ¿En qué puedo ayudarte hoy?"
-          ALCANCE TEMÁTICO:
-          1) Insolvencia de persona natural no comerciante y pequeños comerciantes.
-          2) Licencias urbanísticas y procesos sancionatorios.
-          3) Trámites notariales con escritura pública.
-          4) Información de contacto y agendamiento de citas.
-          Si preguntan temas ajenos, declina cortésmente y ofrece agendar consulta para orientar dentro de esas líneas.
-          Pide permiso antes de solicitar datos sensibles. Explica términos jurídicos en lenguaje claro.`,
+          systemInstruction: 'Eres Amelia, asistente virtual de Ingenio Servicios Legales. Identidad: mujer de 28 años, profesional y empática. Orientas sobre insolvencia, urbanismo y trámites notariales en Colombia.',
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
           }
@@ -176,7 +175,6 @@ const AmeliaVoiceAssistant: React.FC = () => {
 
   return (
     <div className="fixed bottom-6 right-6 z-[10000]">
-      {/* Floating Button A: Voice */}
       {!isOpen && (
         <button 
           onClick={handleToggleOpen}
@@ -186,7 +184,6 @@ const AmeliaVoiceAssistant: React.FC = () => {
         </button>
       )}
 
-      {/* Voice Widget */}
       {isOpen && (
         <div className="w-[300px] bg-white rounded-2xl shadow-2xl flex flex-col border border-gray-100 overflow-hidden transform animate-in slide-in-from-bottom-4">
           <div className="bg-accentGold p-4 flex justify-between items-center text-white">
@@ -249,7 +246,7 @@ const AmeliaVoiceAssistant: React.FC = () => {
             </div>
           )}
           <p className="text-[8px] text-gray-400 text-center pb-4 uppercase tracking-tighter">
-            Este servicio de atención por voz está impulsado por modelos de Gemini Live.
+            Impulsado por Gemini Live.
           </p>
         </div>
       )}

@@ -1,11 +1,14 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Icons } from './constants';
 import AmeliaVoiceAssistant from './components/AmeliaVoiceAssistant';
 import AmeliaChatAssistant from './components/AmeliaChatAssistant';
+import ImageGallery from './components/ImageGallery';
 
 const App: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isHeroHovered, setIsHeroHovered] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +28,20 @@ const App: React.FC = () => {
         top: offsetPosition,
         behavior: "smooth"
       });
+    }
+  };
+
+  const handleHeroMouseEnter = () => {
+    setIsHeroHovered(true);
+    if (videoRef.current) {
+      videoRef.current.play().catch(e => console.log("Video play interrupted or blocked", e));
+    }
+  };
+
+  const handleHeroMouseLeave = () => {
+    setIsHeroHovered(false);
+    if (videoRef.current) {
+      videoRef.current.pause();
     }
   };
 
@@ -89,13 +106,29 @@ const App: React.FC = () => {
 
       <main>
         {/* 3. HERO */}
-        <section id="inicio" className="relative h-[85vh] flex items-center overflow-hidden">
+        <section 
+          id="inicio" 
+          className="relative h-[85vh] flex items-center overflow-hidden cursor-default"
+          onMouseEnter={handleHeroMouseEnter}
+          onMouseLeave={handleHeroMouseLeave}
+        >
           <div className="absolute inset-0 z-0">
+            {/* Background Image (Placeholder) */}
             <img 
               src="https://picsum.photos/id/122/1920/1080" 
               className="w-full h-full object-cover" 
               alt="Medellín Skyline" 
             />
+            {/* Background Video (Activates on Hover) */}
+            <video
+              ref={videoRef}
+              src="https://ugfjgtmbcaltsaqgxpbb.supabase.co/storage/v1/object/public/imagenes%20pagina%20de%20servicios%20legales/20260223_1126_01kj5n0xypefxby0xrds5c36gf.mp4"
+              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${isHeroHovered ? 'opacity-100' : 'opacity-0'}`}
+              muted
+              loop
+              playsInline
+            />
+            {/* Overlay to ensure text readability */}
             <div className="absolute inset-0 bg-corpBlue/75"></div>
           </div>
           
@@ -167,8 +200,6 @@ const App: React.FC = () => {
 
         {/* 5. SERVICIOS DETALLADOS */}
         <section id="servicios" className="py-24 space-y-32">
-          {/* Detailed service content as previously defined... */}
-          {/* ... (Keeping the content to maintain requested structure) */}
           <div id="insolvencia" className="max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-16 items-center">
             <div className="order-2 lg:order-1">
               <h4 className="text-accentGold font-bold uppercase tracking-widest text-sm mb-4">Especialidad Principal</h4>
@@ -225,6 +256,9 @@ const App: React.FC = () => {
           </div>
         </section>
 
+        {/* IMAGE GALLERY INTERMEDIATE SECTION */}
+        <ImageGallery />
+
         {/* 6. NOSOTROS */}
         <section id="nosotros" className="py-24 bg-white">
           <div className="max-w-7xl mx-auto px-4 grid lg:grid-cols-2 gap-16 items-center">
@@ -245,12 +279,11 @@ const App: React.FC = () => {
           </div>
         </section>
 
-        {/* Other sections as before (Experience, Noticias, Contacto)... */}
+        {/* 7. NOTICIAS */}
         <section id="noticias" className="py-24 bg-bgGray">
            <div className="max-w-7xl mx-auto px-4">
               <h2 className="text-3xl font-title font-bold text-center mb-12">Noticias y guías legales</h2>
               <div className="grid md:grid-cols-3 gap-8">
-                 {/* Simplified news cards for layout */}
                  {[
                    { t: 'Insolvencia: Señales de alerta', e: 'Guía' },
                    { t: 'Licencias urbanísticas: Errores comunes', e: 'Urbanismo' },
@@ -266,6 +299,7 @@ const App: React.FC = () => {
            </div>
         </section>
 
+        {/* 8. CONTACTO */}
         <section id="contacto" className="py-24">
           <div className="max-w-7xl mx-auto px-4">
             <h2 className="text-3xl font-title font-bold mb-8">Contacto</h2>
@@ -283,6 +317,29 @@ const App: React.FC = () => {
                   <div className="flex items-center space-x-4"><Icons.Mail /> <span>servicioalcliente@ingenioservicios.com.co</span></div>
                   <div className="flex items-center space-x-4"><Icons.Pin /> <span>Calle 6 sur # 79 150 int 1413, Medellín</span></div>
                </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 9. VIDEO SECTION */}
+        <section className="py-20 bg-white">
+          <div className="max-w-5xl mx-auto px-4">
+            <div className="text-center mb-10">
+              <h2 className="text-3xl font-title font-bold mb-4">Nuestro Respaldo en Acción</h2>
+              <p className="text-textSec">Conoce más sobre cómo transformamos situaciones legales complejas en tranquilidad para nuestros clientes.</p>
+            </div>
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl bg-black aspect-video">
+              <video 
+                className="w-full h-full object-cover"
+                controls
+                poster="https://picsum.photos/id/10/1200/675"
+              >
+                <source 
+                  src="https://ugfjgtmbcaltsaqgxpbb.supabase.co/storage/v1/object/public/imagenes%20pagina%20de%20servicios%20legales/20260223_1124_01kj5mwqpteh0ak7m1qrxf3fbk.mp4" 
+                  type="video/mp4" 
+                />
+                Tu navegador no soporta el elemento de video.
+              </video>
             </div>
           </div>
         </section>
